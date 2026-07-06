@@ -1,6 +1,13 @@
-from fastapi import FastAPI
-from models.Item import Item
+from email.mime import message
 
+from fastapi import FastAPI
+from models import form_data
+from models.Item import Item
+from fastapi import FastAPI, Form
+from typing import Annotated
+from models.form_data import FormData
+from fastapi import FastAPI, Form, Response
+from fastapi import FastAPI, Form, Response, HTTPException, status
 
 app = FastAPI()
 
@@ -49,3 +56,29 @@ def update_item_with_query(item_name: str, item: Item, q: str | None = None):
             response.update({"q": q})
          return response
    return {"error": "Item not found"}
+
+@app.post("/items_form/")
+def create_item(
+  item_name: Annotated[str, Form()],
+  description: Annotated[str, Form()],
+  price: Annotated[float, Form()],
+  tax: Annotated[float, Form()]
+):
+    form_data = FormData(
+      item_name=item_name,
+      description=description,
+      price=price,
+      tax=tax
+  )
+
+    message = f"Item '{form_data.item_name}' created successfully with description '{form_data.description}', price {form_data.price}, and tax {form_data.tax}."
+
+    if tax < 0:
+      raise HTTPException(
+          status_code=status.HTTP_400_BAD_REQUEST,
+          detail="Tax cannot be negative."
+    )
+
+    fake_items_db.append({"item_name": item_name})
+
+    return Response(content=message, status_code=201)
