@@ -1,5 +1,5 @@
 from email.mime import message
-
+import os
 from fastapi import FastAPI
 from models import form_data
 from models.Item import Item
@@ -8,6 +8,12 @@ from typing import Annotated
 from models.form_data import FormData
 from fastapi import FastAPI, Form, Response
 from fastapi import FastAPI, Form, Response, HTTPException, status
+from models.task import Task
+from supabase import create_client, Client
+from dotenv import load_dotenv
+
+load_dotenv()
+supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_PUBLISHABLE_KEY"))
 
 app = FastAPI()
 
@@ -82,3 +88,16 @@ def create_item(
     fake_items_db.append({"item_name": item_name})
 
     return Response(content=message, status_code=201)
+
+@app.post("/tasks/")
+def create_task(task: Task):
+  data = supabase.table("task").insert({
+      "title": task.title,
+      "description": task.description
+  }).execute()
+  return data.data
+
+@app.get("/tasks/")
+def get_tasks():
+   data = supabase.table("task").select("*").execute()
+   return data.data
