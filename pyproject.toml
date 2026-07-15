@@ -5,7 +5,8 @@ dependencies = [
     "fastapi[standard]",
     "pydantic",
     "python-dotenv",
-    "supabase"
+    "supabase",
+    "requests"
 ]
 
 [build-system]
